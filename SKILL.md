@@ -1,5 +1,5 @@
 ---
-name: bash-best-practices
+name: claude-skill-bash
 description: Apply comprehensive bash scripting standards including main function pattern, usage documentation, argument parsing, dependency checking, and error handling. Triggers when creating/editing .sh files, bash scripts, or discussing shell scripting, deployment scripts, automation tasks, or bash conventions.
 ---
 

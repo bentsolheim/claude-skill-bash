@@ -2,7 +2,7 @@
 
 # Script: scaffold.sh
 # Description: Generates a new bash script following best practices
-# Author: Claude Skill bash-best-practices
+# Author: Claude Skill claude-skill-bash
 # Version: 1.0.0
 
 SCRIPT_NAME=$(basename "$0")

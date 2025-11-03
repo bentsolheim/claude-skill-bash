@@ -32,11 +32,11 @@ Copy the skill to your Claude project:
 git clone https://github.com/yourusername/claude-skill-bash.git
 cd claude-skill-bash
 
-# Copy to your project's Claude skills directory
-cp -r bash-best-practices ~/.claude/skills/
+# Copy entire skill directory to global Claude skills
+cp -r . ~/.claude/skills/claude-skill-bash/
 
 # Or for a specific project
-cp -r bash-best-practices /path/to/project/.claude/skills/
+cp -r . /path/to/project/.claude/skills/claude-skill-bash/
 ```
 
 ### Option 2: Symlink (for development)
@@ -45,34 +45,33 @@ Link the skill for easy updates:
 
 ```bash
 # Global installation
-ln -s $(pwd)/bash-best-practices ~/.claude/skills/bash-best-practices
+ln -s $(pwd) ~/.claude/skills/claude-skill-bash
 
 # Project-specific
-ln -s $(pwd)/bash-best-practices /path/to/project/.claude/skills/bash-best-practices
+ln -s $(pwd) /path/to/project/.claude/skills/claude-skill-bash
 ```
 
 ### Option 3: Automated Deployment Script
 
 ```bash
 #!/usr/bin/env bash
-# deploy-skill.sh - Deploy bash-best-practices skill
+# deploy-skill.sh - Deploy claude-skill-bash
 
-SKILL_SOURCE="./bash-best-practices"
-SKILL_NAME="bash-best-practices"
+SKILL_NAME="claude-skill-bash"
 
 function deploy_global() {
-    local target="$HOME/.claude/skills"
+    local target="$HOME/.claude/skills/$SKILL_NAME"
     mkdir -p "$target"
-    cp -r "$SKILL_SOURCE" "$target/"
-    echo "✅ Deployed globally to: $target/$SKILL_NAME"
+    cp -r SKILL.md templates/ scripts/ "$target/"
+    echo "✅ Deployed globally to: $target"
 }
 
 function deploy_project() {
     local project_path="$1"
-    local target="$project_path/.claude/skills"
+    local target="$project_path/.claude/skills/$SKILL_NAME"
     mkdir -p "$target"
-    cp -r "$SKILL_SOURCE" "$target/"
-    echo "✅ Deployed to project: $target/$SKILL_NAME"
+    cp -r SKILL.md templates/ scripts/ "$target/"
+    echo "✅ Deployed to project: $target"
 }
 
 # Usage
@@ -115,16 +114,16 @@ Generate new scripts with the included scaffold utility:
 
 ```bash
 # Basic usage
-bash-best-practices/scripts/scaffold.sh -n backup.sh -d "Backup databases"
+scripts/scaffold.sh -n backup.sh -d "Backup databases"
 
 # With dependencies
-bash-best-practices/scripts/scaffold.sh \
+scripts/scaffold.sh \
     --name deploy.sh \
     --description "Deploy application to production" \
     --dependencies "docker,kubectl,jq"
 
 # Minimal template
-bash-best-practices/scripts/scaffold.sh \
+scripts/scaffold.sh \
     -n process.sh \
     -d "Process data files" \
     --minimal
@@ -133,12 +132,13 @@ bash-best-practices/scripts/scaffold.sh \
 ## Project Structure
 
 ```
-bash-best-practices/
+claude-skill-bash/
 ├── SKILL.md                    # Main skill definition with all best practices
 ├── templates/
 │   └── script-template.sh      # Reusable bash script template
-└── scripts/
-    └── scaffold.sh             # Script generator utility
+├── scripts/
+│   └── scaffold.sh             # Script generator utility
+└── README.md                   # Documentation
 ```
 
 ## Skill Components
