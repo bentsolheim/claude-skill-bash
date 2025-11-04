@@ -356,14 +356,14 @@ MIT License - See LICENSE file for details
 
 ## Changelog
 
-### Version 1.1.0 (2024-11-04)
+### Version 1.1.0 (2025-11-04)
 - Add support for simple scripts (<30 lines, no arguments)
 - New --simple flag in scaffold tool
 - Separate templates for simple vs ordinary scripts
 - Decision tree for choosing script complexity
 - Examples of CI/CD and data transformation scripts
 
-### Version 1.0.0 (2024-11-03)
+### Version 1.0.0 (2025-11-03)
 - Initial release
 - Core bash best practices
 - Script scaffolding tool
