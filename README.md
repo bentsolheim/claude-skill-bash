@@ -78,44 +78,6 @@ cp -r . /path/to/project/.claude/skills/claude-skill-bash/
 
 Note: With this method, you'll need to manually copy files again after updates.
 
-### Option 3: Automated Deployment Script
-
-```bash
-#!/usr/bin/env bash
-# deploy-skill.sh - Deploy claude-skill-bash
-
-SKILL_NAME="claude-skill-bash"
-
-function deploy_global() {
-    local target="$HOME/.claude/skills/$SKILL_NAME"
-    mkdir -p "$target"
-    cp -r SKILL.md templates/ scripts/ "$target/"
-    echo "✅ Deployed globally to: $target"
-}
-
-function deploy_project() {
-    local project_path="$1"
-    local target="$project_path/.claude/skills/$SKILL_NAME"
-    mkdir -p "$target"
-    cp -r SKILL.md templates/ scripts/ "$target/"
-    echo "✅ Deployed to project: $target"
-}
-
-# Usage
-case "${1:-}" in
-    --global)
-        deploy_global
-        ;;
-    --project)
-        deploy_project "${2:-.}"
-        ;;
-    *)
-        echo "Usage: $0 --global | --project <path>"
-        exit 1
-        ;;
-esac
-```
-
 ## Usage
 
 ### Automatic Invocation
@@ -133,33 +95,6 @@ The skill automatically activates when Claude detects:
 "Review scripts/deploy.sh for best practices"
 "I need a script to process log files"
 "Make this bash script more maintainable"
-```
-
-### Using the Scaffold Tool
-
-Generate new scripts with the included scaffold utility:
-
-```bash
-# Ordinary script (full structure)
-scripts/scaffold.sh -n backup.sh -d "Backup databases"
-
-# With dependencies
-scripts/scaffold.sh \
-    --name deploy.sh \
-    --description "Deploy application to production" \
-    --dependencies "docker,kubectl,jq"
-
-# Simple script (no main function, <30 lines)
-scripts/scaffold.sh \
-    -n version.sh \
-    -d "Get version from git" \
-    --simple
-
-# Minimal template (reduced boilerplate)
-scripts/scaffold.sh \
-    -n process.sh \
-    -d "Process data files" \
-    --minimal
 ```
 
 ## Project Structure
@@ -271,43 +206,6 @@ Add new templates for specific use cases:
 # Create specialized template
 cp templates/script-template.sh templates/backup-template.sh
 # Edit for backup-specific structure
-```
-
-## Integration
-
-### With CI/CD
-
-Add validation to your pipeline:
-
-```yaml
-# .github/workflows/bash-lint.yml
-name: Bash Script Validation
-on: [push, pull_request]
-jobs:
-  validate:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Validate bash scripts
-        run: |
-          for script in scripts/*.sh; do
-            bash -n "$script"
-          done
-```
-
-### With Git Hooks
-
-Auto-check scripts before commit:
-
-```bash
-#!/usr/bin/env bash
-# .git/hooks/pre-commit
-for file in $(git diff --cached --name-only | grep '\.sh$'); do
-    if ! bash -n "$file"; then
-        echo "Syntax error in $file"
-        exit 1
-    fi
-done
 ```
 
 ## Troubleshooting
