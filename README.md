@@ -4,14 +4,29 @@ A Claude Code skill that ensures bash scripts follow enterprise-grade best pract
 
 ## Overview
 
-This skill automatically activates when working with bash scripts to enforce consistent patterns including:
+This skill automatically activates when working with bash scripts to enforce consistent patterns. It recognizes two script types:
+
+### Simple Scripts (<30 lines, no arguments)
+For scripts that do one simple thing well:
+- Direct execution without main function
+- No argument parsing needed
+- Minimal boilerplate
+- Clear purpose comment
+
+### Ordinary Scripts (larger scope)
+For scripts with broader functionality:
 - Main function pattern with guard clause
 - Comprehensive usage documentation
 - Structured argument parsing
 - Dependency validation
-- Explicit error handling (no `set -e`)
 - Organized function structure
 - User-friendly colored output
+
+Both types enforce:
+- Explicit error handling (no `set -e`)
+- Proper stream usage (stdout vs stderr)
+- Meaningful exit codes
+- Variable safety
 
 ## Features
 
@@ -125,7 +140,7 @@ The skill automatically activates when Claude detects:
 Generate new scripts with the included scaffold utility:
 
 ```bash
-# Basic usage
+# Ordinary script (full structure)
 scripts/scaffold.sh -n backup.sh -d "Backup databases"
 
 # With dependencies
@@ -134,7 +149,13 @@ scripts/scaffold.sh \
     --description "Deploy application to production" \
     --dependencies "docker,kubectl,jq"
 
-# Minimal template
+# Simple script (no main function, <30 lines)
+scripts/scaffold.sh \
+    -n version.sh \
+    -d "Get version from git" \
+    --simple
+
+# Minimal template (reduced boilerplate)
 scripts/scaffold.sh \
     -n process.sh \
     -d "Process data files" \
@@ -334,6 +355,13 @@ MIT License - See LICENSE file for details
 - Discussions: [GitHub Discussions](https://github.com/bentsolheim/claude-skill-bash/discussions)
 
 ## Changelog
+
+### Version 1.1.0 (2024-11-04)
+- Add support for simple scripts (<30 lines, no arguments)
+- New --simple flag in scaffold tool
+- Separate templates for simple vs ordinary scripts
+- Decision tree for choosing script complexity
+- Examples of CI/CD and data transformation scripts
 
 ### Version 1.0.0 (2024-11-03)
 - Initial release

@@ -16,9 +16,53 @@ This skill should be automatically invoked when:
 - Reviewing or refactoring bash code
 - User mentions: bash, shell script, main function, argument parsing, script structure
 
+## Script Complexity Guidelines
+
+This skill recognizes two categories of scripts with different structural requirements:
+
+### Simple Scripts
+Scripts that do one simple thing well without unnecessary ceremony.
+
+**Characteristics:**
+- Less than ~30 lines of actual logic (excluding comments and whitespace)
+- No command-line arguments required
+- Single, focused purpose that's self-evident
+- Linear flow or minimal branching
+- Output is often consumed by other programs or scripts
+
+**Examples:** Version detection, environment checks, data format conversion, simple calculations
+
+**Structural Requirements:**
+- Main function and guard clause: **Optional**
+- Usage function: **Not needed** (no arguments to document)
+- Argument parsing: **Not applicable**
+- Color output: **Optional** (often unnecessary)
+- Can use direct execution without function wrapping
+
+### Ordinary Scripts
+Scripts with broader scope requiring full structure for maintainability.
+
+**Characteristics:**
+- More than ~30 lines of logic OR
+- Takes command-line arguments OR
+- Multiple functions or complex branching OR
+- Interactive use by humans OR
+- Requires detailed documentation
+
+**Examples:** Deployment tools, backup utilities, system maintenance scripts, development tools
+
+**Structural Requirements:**
+- Main function and guard clause: **Required**
+- Usage function: **Required**
+- Argument parsing: **Required** (if taking arguments)
+- Full error handling: **Required**
+- User-friendly output: **Required** (for interactive scripts)
+
 ## Core Principles to Apply
 
-When writing or modifying bash scripts, ALWAYS ensure:
+### For Ordinary Scripts
+
+When writing ordinary scripts, ensure:
 
 1. **Main function pattern with guard clause** - Every script must have a main() function
 2. **Usage function** - Clear help documentation
@@ -28,7 +72,19 @@ When writing or modifying bash scripts, ALWAYS ensure:
 6. **Function organization** - Correct ordering and single responsibility
 7. **User-friendly output** - Colored, structured output with status indicators
 
-## Script Structure Template
+### For Simple Scripts
+
+When writing simple scripts, ensure:
+
+1. **Clear purpose comment** - Explain what the script does at the top
+2. **Explicit error handling** - Never use `set -e`, handle errors explicitly
+3. **Proper exit codes** - 0 for success, non-zero for failure
+4. **Error output to stderr** - Use `>&2` for error messages
+5. **Variable safety** - Quote variables, handle undefined cases
+
+## Script Structure Templates
+
+### Template for Ordinary Scripts
 
 Every new bash script should follow this structure:
 
@@ -155,6 +211,56 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     exit 0
 fi
 ```
+
+### Template for Simple Scripts
+
+For scripts that do one simple thing without arguments:
+
+```bash
+#!/usr/bin/env bash
+# Purpose: Determine version for CI builds based on git state
+# Usage: determine-version.sh
+# Output: Version string to stdout
+
+# For simple scripts, direct execution is fine - no main() required
+
+# Check if we're on a tag
+TAG=$(git describe --exact-match --tags HEAD 2>/dev/null)
+
+if [ -n "$TAG" ]; then
+    # On a tag - use the tag as version
+    echo "${TAG#v}"
+else
+    # Not on tag - determine from branch
+    if [ -n "$GITHUB_HEAD_REF" ]; then
+        # Pull request
+        BRANCH="$GITHUB_HEAD_REF"
+    elif [ -n "$GITHUB_REF_NAME" ]; then
+        # Push to branch
+        BRANCH="$GITHUB_REF_NAME"
+    else
+        # Fallback to current branch
+        BRANCH=$(git symbolic-ref -q --short HEAD 2>/dev/null)
+        if [ -z "$BRANCH" ]; then
+            echo "Error: Unable to determine branch" >&2
+            exit 1
+        fi
+    fi
+
+    # Sanitize branch name for version string
+    SANITIZED=$(echo "$BRANCH" | sed 's/[^a-zA-Z0-9._-]/_/g')
+    echo "${SANITIZED}-SNAPSHOT"
+fi
+```
+
+**Key points for simple scripts:**
+- Clear purpose comment at the top
+- Direct execution without main() wrapper
+- Errors still go to stderr with >&2
+- Meaningful exit codes (0 for success, non-zero for failure)
+- Variables are still properly quoted
+- No need for usage() function when there are no arguments
+- No need for color output when output is data
 
 ## Detailed Best Practices
 
@@ -454,6 +560,48 @@ When users request scripts for common tasks, apply these patterns:
 - Support resume on failure
 - Generate detailed reports
 
+## Choosing Between Simple and Ordinary Scripts
+
+### Decision Tree
+
+Ask these questions to determine which pattern to use:
+
+1. **Does the script take command-line arguments?**
+   - YES → Use ordinary script pattern (needs usage() and parsing)
+   - NO → Continue to question 2
+
+2. **Is the logic more than ~30 lines (excluding comments)?**
+   - YES → Use ordinary script pattern (needs structure)
+   - NO → Continue to question 3
+
+3. **Does it have multiple functions or complex branching?**
+   - YES → Use ordinary script pattern (needs organization)
+   - NO → Continue to question 4
+
+4. **Will it be run interactively by humans who need help?**
+   - YES → Use ordinary script pattern (needs user-friendly features)
+   - NO → Continue to question 5
+
+5. **Is it doing one simple, self-evident task?**
+   - YES → Use simple script pattern
+   - NO → Use ordinary script pattern
+
+**When in doubt, use the ordinary pattern.** It's better to have structure you don't need than to need structure you don't have.
+
+### Examples of Simple Scripts
+- `determine-version.sh` - Outputs version string based on git state
+- `check-env.sh` - Verifies environment variables are set
+- `format-json.sh` - Reformats JSON from stdin to stdout
+- `count-lines.sh` - Counts lines in specified file types
+- `is-production.sh` - Returns 0 if on production branch
+
+### Examples of Ordinary Scripts
+- `deploy.sh` - Multi-step deployment with rollback
+- `backup.sh` - Database backup with retention management
+- `setup-dev.sh` - Developer environment initialization
+- `test-runner.sh` - Configurable test execution
+- `migrate-data.sh` - Data migration with validation
+
 ## Testing Scripts
 
 Always test generated scripts for:
@@ -461,7 +609,7 @@ Always test generated scripts for:
 2. **Undefined variables**: Run with `set -u` temporarily
 3. **Dependencies**: Run without required tools installed
 4. **Error paths**: Test with invalid inputs
-5. **Sourcing**: Verify guard clause works
+5. **Sourcing**: Verify guard clause works (for ordinary scripts)
 
 ## Remember
 

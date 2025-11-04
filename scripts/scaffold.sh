@@ -35,12 +35,14 @@ options:
     --dependencies    <deps>     Comma-separated list of dependencies (e.g., "jq,curl,git")
     --no-colors                  Generate script without color support
     --minimal                    Generate minimal template without utility functions
+    --simple                     Generate simple script (no main function, <30 lines)
     -h|--help                    Show this help message
 
 examples:
     ${SCRIPT_NAME} -n backup.sh -d "Backup MySQL databases"
     ${SCRIPT_NAME} --name deploy.sh --description "Deploy application" --dependencies "docker,kubectl"
     ${SCRIPT_NAME} -n process.sh -d "Process log files" -o ~/scripts/ --minimal
+    ${SCRIPT_NAME} -n version.sh -d "Get git version" --simple
 
 EOM
     exit 1
@@ -54,6 +56,7 @@ function main() {
     local dependencies=""
     local no_colors=false
     local minimal=false
+    local simple=false
 
     # Parse arguments
     while [ "$1" != "" ]; do
@@ -83,6 +86,9 @@ function main() {
             ;;
         --minimal)
             minimal=true
+            ;;
+        --simple)
+            simple=true
             ;;
         -h | --help)
             usage
@@ -116,6 +122,11 @@ function main() {
         script_name="${script_name}.sh"
     fi
 
+    # Select appropriate template
+    if [ "$simple" = true ]; then
+        TEMPLATE_FILE="${SCRIPT_DIR}/../templates/simple-script-template.sh"
+    fi
+
     # Check if template exists
     if [ ! -f "$TEMPLATE_FILE" ]; then
         echo -e "${RED}Error: Template file not found: ${TEMPLATE_FILE}${NC}" >&2
@@ -145,7 +156,7 @@ function main() {
     fi
 
     # Generate the script
-    generate_script "$script_name" "$description" "$author" "$dependencies" "$no_colors" "$minimal" > "$output_file"
+    generate_script "$script_name" "$description" "$author" "$dependencies" "$no_colors" "$minimal" "$simple" > "$output_file"
 
     # Make executable
     chmod +x "$output_file"
@@ -153,11 +164,17 @@ function main() {
     echo -e "${GREEN}✅ Script generated successfully: ${output_file}${NC}"
     echo
     echo "Next steps:"
-    echo "1. Edit the script to add your business logic"
-    echo "2. Update the DEPENDENCIES array if needed"
-    echo "3. Customize the argument parsing for your needs"
-    echo "4. Test with: bash -n ${output_file}"
-    echo "5. Run with: ${output_file} --help"
+    if [ "$simple" = true ]; then
+        echo "1. Edit the script to add your logic"
+        echo "2. Test with: bash -n ${output_file}"
+        echo "3. Run with: ${output_file}"
+    else
+        echo "1. Edit the script to add your business logic"
+        echo "2. Update the DEPENDENCIES array if needed"
+        echo "3. Customize the argument parsing for your needs"
+        echo "4. Test with: bash -n ${output_file}"
+        echo "5. Run with: ${output_file} --help"
+    fi
 }
 
 function generate_script() {
@@ -167,6 +184,7 @@ function generate_script() {
     local deps="$4"
     local no_colors="$5"
     local minimal="$6"
+    local simple="$7"
 
     # Read template
     local template=$(cat "$TEMPLATE_FILE")
@@ -177,6 +195,11 @@ function generate_script() {
     template="${template//\{\{AUTHOR\}\}/$author}"
     template="${template//\{\{DATE\}\}/$(date +%Y-%m-%d)}"
 
+    # For simple scripts, add output description placeholder
+    if [ "$simple" = true ]; then
+        template="${template//\{\{OUTPUT_DESCRIPTION\}\}/Result or data to stdout}"
+    fi
+
     # Handle dependencies
     if [ -n "$deps" ]; then
         # Convert comma-separated to space-separated array format
@@ -184,8 +207,8 @@ function generate_script() {
         template=$(echo "$template" | sed "s/DEPENDENCIES=()/DEPENDENCIES=($deps_array)/")
     fi
 
-    # Remove color support if requested
-    if [ "$no_colors" = true ]; then
+    # Remove color support if requested (not for simple scripts)
+    if [ "$no_colors" = true ] && [ "$simple" != true ]; then
         # Remove color definition block
         template=$(echo "$template" | sed '/^# Color definitions/,/^fi$/d')
         # Remove color codes from print functions
@@ -193,8 +216,8 @@ function generate_script() {
         template=$(echo "$template" | sed 's/\\033\[[0-9;]*m//g')
     fi
 
-    # Generate minimal version if requested
-    if [ "$minimal" = true ]; then
+    # Generate minimal version if requested (not for simple scripts)
+    if [ "$minimal" = true ] && [ "$simple" != true ]; then
         # Remove utility functions except exit_on_missing_tools
         template=$(echo "$template" | sed '/^function print_/,/^}$/d')
         # Remove verbose handling
