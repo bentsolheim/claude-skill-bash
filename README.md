@@ -23,13 +23,35 @@ This skill automatically activates when working with bash scripts to enforce con
 
 ## Installation
 
-### Option 1: Direct Installation
+### Recommended: Symlink Installation
 
-Copy the skill to your Claude project:
+Using a symlink ensures you always have the latest version and can easily pull updates from git:
 
 ```bash
 # Clone this repository
-git clone https://github.com/yourusername/claude-skill-bash.git
+git clone https://github.com/bentsolheim/claude-skill-bash.git
+cd claude-skill-bash
+
+# Create symlink for global installation (recommended)
+ln -s $(pwd) ~/.claude/skills/claude-skill-bash
+
+# Or for a specific project
+ln -s $(pwd) /path/to/project/.claude/skills/claude-skill-bash
+```
+
+To update the skill later:
+```bash
+cd claude-skill-bash
+git pull
+```
+
+### Alternative: Direct Copy
+
+If you prefer a static installation without symlinks:
+
+```bash
+# Clone this repository
+git clone https://github.com/bentsolheim/claude-skill-bash.git
 cd claude-skill-bash
 
 # Copy entire skill directory to global Claude skills
@@ -39,17 +61,7 @@ cp -r . ~/.claude/skills/claude-skill-bash/
 cp -r . /path/to/project/.claude/skills/claude-skill-bash/
 ```
 
-### Option 2: Symlink (for development)
-
-Link the skill for easy updates:
-
-```bash
-# Global installation
-ln -s $(pwd) ~/.claude/skills/claude-skill-bash
-
-# Project-specific
-ln -s $(pwd) /path/to/project/.claude/skills/claude-skill-bash
-```
+Note: With this method, you'll need to manually copy files again after updates.
 
 ### Option 3: Automated Deployment Script
 
@@ -283,7 +295,7 @@ done
 
 1. Check skill is in correct directory:
    ```bash
-   ls ~/.claude/skills/bash-best-practices/
+   ls ~/.claude/skills/claude-skill-bash/
    ```
 
 2. Verify SKILL.md frontmatter is valid
@@ -318,8 +330,8 @@ MIT License - See LICENSE file for details
 
 ## Support
 
-- Issues: [GitHub Issues](https://github.com/yourusername/claude-skill-bash/issues)
-- Discussions: [GitHub Discussions](https://github.com/yourusername/claude-skill-bash/discussions)
+- Issues: [GitHub Issues](https://github.com/bentsolheim/claude-skill-bash/issues)
+- Discussions: [GitHub Discussions](https://github.com/bentsolheim/claude-skill-bash/discussions)
 
 ## Changelog
 
