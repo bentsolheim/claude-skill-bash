@@ -1,0 +1,102 @@
+---
+title: "Example Document Title"
+subtitle: "A Subtitle for Context"
+short_title: "Example Doc"
+author: "Your Name"
+date: "March 2026"
+organization: "Your Organization"
+document_status: "Draft"
+titlepage: true
+toc: true
+format:
+  pdf:
+    template: corporate-report.tex
+    number-sections: true
+    keep-tex: false
+---
+
+# Introduction
+
+This is an example Quarto document that renders to a professional PDF using a custom LaTeX template. Replace this content with your own.
+
+## Background
+
+Provide context for the document here. Use standard Markdown syntax — headings, lists, tables, code blocks, and links all work as expected.
+
+Key points:
+
+- First important point
+- Second important point with a nested list:
+  - Sub-item alpha
+  - Sub-item beta
+    - Deeply nested item
+- Third important point
+
+## Scope
+
+Define the boundaries of this document. Inline code like `config.yaml` or `quarto render` is styled with a background highlight.
+
+| Item | In Scope | Notes |
+|------|----------|-------|
+| Topic A | Yes | Primary focus |
+| Topic B | Yes | Secondary focus |
+| Topic C | No | Out of scope for this version |
+
+# Main Content
+
+## Code Examples
+
+Use fenced code blocks for technical content. Multiple languages are syntax-highlighted:
+
+```bash
+#!/bin/bash
+echo "Hello from a bash script"
+export QUARTO_LOG_LEVEL=info
+quarto render document.qmd --to pdf
+```
+
+```python
+def generate_report(title: str, data: list[dict]) -> str:
+    """Generate a formatted report from structured data."""
+    lines = [f"# {title}", ""]
+    for item in data:
+        lines.append(f"- **{item['name']}**: {item['value']}")
+    return "\n".join(lines)
+```
+
+```json
+{
+  "format": "pdf",
+  "template": "corporate-report.tex",
+  "number-sections": true,
+  "toc": true
+}
+```
+
+## Blockquotes
+
+> Blockquotes are styled with a left border accent matching the template's color scheme. They work well for callouts, important notes, or citations.
+>
+> Multi-paragraph blockquotes are supported — just continue with the `>` prefix.
+
+## Links and References
+
+External links are styled with the template's accent color: see the [Quarto documentation](https://quarto.org/docs/output-formats/pdf-basics.html) for more on PDF output.
+
+## Lists
+
+Ordered lists with consistent formatting:
+
+1. First numbered item
+2. Second numbered item
+   a. Sub-item with letter
+   b. Another sub-item
+3. Third numbered item
+
+# Conclusion
+
+Summarize key points and next steps.
+
+---
+
+*Document generated with Quarto and a custom LaTeX template.*
