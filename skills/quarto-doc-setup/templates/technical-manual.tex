@@ -1,0 +1,373 @@
+% Technical Manual Template for Quarto
+% Optimized for technical content with code blocks, admonitions, and structured numbering
+\documentclass[11pt,a4paper]{scrartcl}
+
+% ============================================================================
+% PACKAGES
+% ============================================================================
+
+\usepackage{fontspec}
+\usepackage{libertinus}
+\setmonofont{JetBrains Mono}[Scale=MatchLowercase]
+
+\usepackage[
+  top=2.5cm,
+  bottom=2.5cm,
+  left=2.5cm,
+  right=2.5cm,
+  headheight=14pt
+]{geometry}
+
+% Colors
+\usepackage[table]{xcolor}
+\definecolor{accent}{RGB}{44, 95, 92}        % Dark teal
+\definecolor{accentlight}{RGB}{70, 130, 126}
+\definecolor{textgray}{RGB}{85, 85, 85}
+\definecolor{lightgray}{RGB}{245, 245, 245}
+\definecolor{tableborder}{RGB}{200, 200, 200}
+\definecolor{codebg}{RGB}{248, 248, 248}
+\definecolor{blockquotebg}{RGB}{248, 249, 250}
+\definecolor{blockquoteborder}{RGB}{44, 95, 92}
+\definecolor{notebg}{RGB}{232, 245, 253}
+\definecolor{noteborder}{RGB}{33, 150, 243}
+\definecolor{warningbg}{RGB}{255, 243, 224}
+\definecolor{warningborder}{RGB}{255, 152, 0}
+\definecolor{tipbg}{RGB}{232, 245, 233}
+\definecolor{tipborder}{RGB}{76, 175, 80}
+
+% Headers and footers
+\usepackage{scrlayer-scrpage}
+\pagestyle{scrheadings}
+\clearpairofpagestyles
+\ohead{\small\textcolor{textgray}{$if(short_title)$$short_title$$else$$title$$endif$}}
+\ofoot{\thepage}
+\ifoot{\small\textcolor{textgray}{$if(document_status)$$document_status$$else$Draft$endif$}}
+
+% Tables
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{tabularx}
+\usepackage{calc}
+\renewcommand{\arraystretch}{1.3}
+\setlength{\tabcolsep}{8pt}
+
+% Lists
+\usepackage{enumitem}
+\setlist[itemize]{topsep=4pt, itemsep=2pt, parsep=0pt, leftmargin=1.5em}
+\setlist[enumerate]{topsep=4pt, itemsep=2pt, parsep=0pt, leftmargin=1.5em}
+
+% Hyperlinks
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=accent,
+  urlcolor=accentlight,
+  citecolor=accent,
+  pdfborder={0 0 0},
+$if(title-meta)$
+  pdftitle={$title-meta$},
+$endif$
+$if(author-meta)$
+  pdfauthor={$author-meta$},
+$endif$
+$if(lang)$
+  pdflang={$lang$},
+$endif$
+  pdfcreator={LaTeX via Quarto}
+}
+
+% Graphics
+\usepackage{graphicx}
+
+% Image scaling for Quarto/Pandoc
+\makeatletter
+\newsavebox\pandoc@box
+\newcommand*\pandocbounded[1]{% scales image to fit in text area
+  \sbox\pandoc@box{#1}%
+  \Gscale@div\pandoc@scale{\textheight}{\dimexpr\ht\pandoc@box+\dp\pandoc@box\relax}%
+  \ifdim\wd\pandoc@box>\linewidth
+    \resizebox{\linewidth}{!}{#1}%
+  \else
+    \ifdim\dimexpr\ht\pandoc@box+\dp\pandoc@box\relax>\textheight
+      \resizebox{!}{\textheight}{#1}%
+    \else
+      #1%
+    \fi
+  \fi
+}
+\makeatother
+
+% Code blocks
+\usepackage{fancyvrb}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{
+  commandchars=\\\{\},
+  fontsize=\small,
+  frame=leftline,
+  framerule=2pt,
+  rulecolor=\color{accent},
+  xleftmargin=1em,
+  samepage=true
+}
+
+% Blockquotes and boxes
+\usepackage{mdframed}
+\usepackage{zref}
+\usepackage{needspace}
+
+% Shaded environment for syntax highlighting
+\definecolor{shadecolor}{RGB}{248, 248, 248}
+\newenvironment{Shaded}{%
+  \vspace{4pt}%
+  \begin{mdframed}[
+    backgroundcolor=shadecolor,
+    linewidth=0pt,
+    innerleftmargin=8pt, innerrightmargin=8pt,
+    innertopmargin=6pt, innerbottommargin=6pt,
+    skipabove=8pt, skipbelow=8pt
+  ]%
+}{%
+  \end{mdframed}%
+  \vspace{4pt}%
+}
+
+\newmdenv[
+  topline=false, bottomline=false, rightline=false, leftline=true,
+  linewidth=3pt, linecolor=blockquoteborder,
+  backgroundcolor=blockquotebg,
+  innerleftmargin=12pt, innerrightmargin=12pt,
+  innertopmargin=8pt, innerbottommargin=8pt,
+  skipabove=12pt, skipbelow=12pt
+]{customquote}
+\renewenvironment{quote}{\begin{customquote}}{\end{customquote}}
+
+% Admonition boxes
+\newcommand{\notebox}[1]{%
+  \begin{mdframed}[
+    topline=false, bottomline=false, rightline=false, leftline=true,
+    linewidth=3pt, linecolor=noteborder,
+    backgroundcolor=notebg,
+    innerleftmargin=12pt, innerrightmargin=12pt,
+    innertopmargin=8pt, innerbottommargin=8pt,
+    skipabove=12pt, skipbelow=12pt
+  ]
+  \textbf{\textcolor{noteborder}{Note:}} #1
+  \end{mdframed}
+}
+
+\newcommand{\warningbox}[1]{%
+  \begin{mdframed}[
+    topline=false, bottomline=false, rightline=false, leftline=true,
+    linewidth=3pt, linecolor=warningborder,
+    backgroundcolor=warningbg,
+    innerleftmargin=12pt, innerrightmargin=12pt,
+    innertopmargin=8pt, innerbottommargin=8pt,
+    skipabove=12pt, skipbelow=12pt
+  ]
+  \textbf{\textcolor{warningborder}{Warning:}} #1
+  \end{mdframed}
+}
+
+\newcommand{\tipbox}[1]{%
+  \begin{mdframed}[
+    topline=false, bottomline=false, rightline=false, leftline=true,
+    linewidth=3pt, linecolor=tipborder,
+    backgroundcolor=tipbg,
+    innerleftmargin=12pt, innerrightmargin=12pt,
+    innertopmargin=8pt, innerbottommargin=8pt,
+    skipabove=12pt, skipbelow=12pt
+  ]
+  \textbf{\textcolor{tipborder}{Tip:}} #1
+  \end{mdframed}
+}
+
+% Section formatting
+\usepackage{titlesec}
+\titleformat{\section}
+  {\normalfont\Large\bfseries\color{accent}}
+  {\thesection}{1em}{}
+\titlespacing*{\section}{0pt}{24pt plus 4pt minus 2pt}{12pt plus 2pt minus 2pt}
+
+\titleformat{\subsection}
+  {\normalfont\large\bfseries\color{textgray}}
+  {\thesubsection}{1em}{}
+\titlespacing*{\subsection}{0pt}{18pt plus 3pt minus 2pt}{8pt plus 2pt minus 2pt}
+
+\titleformat{\subsubsection}
+  {\normalfont\normalsize\bfseries}
+  {\thesubsubsection}{1em}{}
+\titlespacing*{\subsubsection}{0pt}{12pt plus 2pt minus 1pt}{6pt plus 1pt minus 1pt}
+
+% Paragraph spacing
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{8pt plus 2pt minus 1pt}
+
+% Pandoc compatibility
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{2pt}\setlength{\parskip}{0pt}}
+
+% Prevent overfull lines
+\setlength{\emergencystretch}{3em}
+
+% Section numbering (responds to number-sections frontmatter)
+$if(numbersections)$
+\setcounter{secnumdepth}{$if(secnumdepth)$$secnumdepth$$else$5$endif$}
+$else$
+\setcounter{secnumdepth}{-\maxdimen}
+$endif$
+
+% Line spacing
+$if(linestretch)$
+\usepackage{setspace}
+$endif$
+
+% Language support
+$if(lang)$
+\usepackage[$lang$]{babel}
+$endif$
+
+% Longtable left-alignment fix
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+\setlength{\LTleft}{0pt}
+
+% Footnotes in longtable
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+
+% Inline code styling
+\let\oldtexttt\texttt
+\renewcommand{\texttt}[1]{{\small\colorbox{lightgray}{\oldtexttt{#1}}}}
+
+% Syntax highlighting token commands
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+
+% ============================================================================
+% TITLE PAGE
+% ============================================================================
+
+\newcommand{\maketitlepage}{
+  \begin{titlepage}
+    \centering
+    \vspace*{2cm}
+
+    $if(logo)$
+    \includegraphics[width=0.3\textwidth]{$logo$}\\[1.5cm]
+    $else$
+    \vspace{1.5cm}
+    $endif$
+
+    {\Huge\bfseries\color{accent} $title$\par}
+    \vspace{0.5cm}
+    $if(subtitle)$
+    {\Large\color{textgray} $subtitle$\par}
+    \vspace{1cm}
+    $endif$
+
+    \rule{0.6\textwidth}{0.4pt}\\[1.5cm]
+
+    $if(version)$
+    {\large Version: \textbf{$version$}\par}
+    \vspace{0.3cm}
+    $endif$
+
+    \vfill
+
+    $if(organization)$
+    {\large\textbf{$organization$}\par}
+    \vspace{0.3cm}
+    $endif$
+
+    $if(author)$
+    {\normalsize Prepared by: $author$\par}
+    $endif$
+
+    $if(date)$
+    \vspace{0.3cm}
+    {\normalsize $date$\par}
+    $endif$
+
+    $if(document_status)$
+    \vspace{1cm}
+    {\small\textcolor{textgray}{Document Status: $document_status$}\par}
+    $endif$
+
+  \end{titlepage}
+}
+
+% ============================================================================
+% PANDOC/QUARTO INJECTED CONTENT
+% ============================================================================
+
+$for(header-includes)$
+$header-includes$
+$endfor$
+
+% ============================================================================
+% DOCUMENT
+% ============================================================================
+
+\begin{document}
+
+$if(titlepage)$
+\maketitlepage
+$endif$
+
+$for(include-before)$
+$include-before$
+
+$endfor$
+$if(toc)$
+$if(toc-title)$
+\renewcommand*\contentsname{$toc-title$}
+$endif$
+{
+\setcounter{tocdepth}{$if(toc-depth)$$toc-depth$$else$3$endif$}
+\tableofcontents
+}
+\newpage
+$endif$
+$if(linestretch)$
+\setstretch{$linestretch$}
+$endif$
+
+$body$
+
+$for(include-after)$
+$include-after$
+
+$endfor$
+\end{document}
