@@ -52,239 +52,202 @@ Both types enforce:
 - **Template System**: Reusable templates for common patterns
 - **Version Controlled**: Deploy consistent standards across projects
 
-## Installation
+## What a typical script looks like
 
-### Recommended: Symlink Installation
-
-Using a symlink ensures you always have the latest version and can easily pull updates from git:
+Here's an "ordinary" script produced by this skill — archives log files in a directory older than N days, optionally gzipping them:
 
 ```bash
-# Clone this repository
-git clone https://github.com/bentsolheim/claude-skill-bash.git
-cd claude-skill-bash
+#!/usr/bin/env bash
 
-# Create symlink for global installation (recommended)
-ln -s $(pwd) ~/.claude/skills/claude-skill-bash
+# Script: rotate-logs.sh
+# Description: Archive log files older than N days, optionally gzipping them.
+# Author: Bent André Solheim
+# Date: 2026-06-08
 
-# Or for a specific project
-ln -s $(pwd) /path/to/project/.claude/skills/claude-skill-bash
+DEPENDENCIES=(find gzip)
+SCRIPT_NAME=$(basename "$0")
+VERSION="1.0.0"
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m'
+
+if [[ -n "${NO_COLOR:-}" ]] || [[ "${TERM:-}" == "dumb" ]]; then
+    RED=""; GREEN=""; YELLOW=""; BLUE=""; NC=""
+fi
+
+function usage() {
+    cat <<EOM
+
+Archive log files older than N days, optionally gzipping them.
+
+usage: ${SCRIPT_NAME} -d <dir> [options]
+
+options:
+    -d|--dir       <path>     Directory to scan (required)
+    -a|--age       <days>     Archive files older than this (default: 7)
+    -g|--gzip                 Compress archived files with gzip
+    -n|--dry-run              Show what would happen without doing it
+    -v|--verbose              Enable verbose output
+    -h|--help                 Show this help
+    --version                 Show version
+
+dependencies: ${DEPENDENCIES[@]}
+
+examples:
+    ${SCRIPT_NAME} -d /var/log/myapp
+    ${SCRIPT_NAME} -d /var/log/myapp -a 30 -g
+    ${SCRIPT_NAME} -d /var/log/myapp --dry-run -v
+
+EOM
+    exit 1
+}
+
+function main() {
+    local dir=""
+    local age=7
+    local do_gzip=false
+    local dry_run=false
+    local verbose=false
+
+    while [ "$1" != "" ]; do
+        case $1 in
+            -d|--dir)     shift; dir="$1" ;;
+            -a|--age)     shift; age="$1" ;;
+            -g|--gzip)    do_gzip=true ;;
+            -n|--dry-run) dry_run=true ;;
+            -v|--verbose) verbose=true ;;
+            --version)    echo "${SCRIPT_NAME} ${VERSION}"; exit 0 ;;
+            -h|--help)    usage ;;
+            *) echo "Error: Unknown option '$1'" >&2; usage ;;
+        esac
+        shift
+    done
+
+    if [ -z "$dir" ]; then
+        echo "Error: -d/--dir is required" >&2
+        usage
+    fi
+    if [ ! -d "$dir" ]; then
+        print_error "Directory does not exist: $dir"
+        exit 1
+    fi
+    if ! [[ "$age" =~ ^[0-9]+$ ]]; then
+        print_error "--age must be a non-negative integer (got: $age)"
+        exit 1
+    fi
+
+    exit_on_missing_tools "${DEPENDENCIES[@]}"
+
+    [ "$verbose" = true ] && print_header "Rotating logs in $dir (older than $age days)"
+
+    archive_old_logs "$dir" "$age" "$do_gzip" "$dry_run" "$verbose"
+
+    [ "$verbose" = true ] && print_success "Done"
+}
+
+function archive_old_logs() {
+    local dir="$1"
+    local age="$2"
+    local do_gzip="$3"
+    local dry_run="$4"
+    local verbose="$5"
+
+    local count=0
+    while IFS= read -r -d '' file; do
+        count=$((count + 1))
+        if [ "$dry_run" = true ]; then
+            echo "would archive: $file"
+            continue
+        fi
+        [ "$verbose" = true ] && echo "archiving: $file"
+        if [ "$do_gzip" = true ]; then
+            gzip -f "$file" || { print_error "gzip failed: $file"; return 1; }
+        fi
+    done < <(find "$dir" -type f -mtime +"$age" -print0)
+
+    [ "$verbose" = true ] && echo "Processed $count file(s)"
+}
+
+# --- Helpers ---
+
+function exit_on_missing_tools() {
+    for cmd in "$@"; do
+        command -v "$cmd" &>/dev/null && continue
+        printf "Error: Required tool '%s' is not installed\n" "$cmd" >&2
+        exit 1
+    done
+}
+
+function print_header()  { echo -e "${BLUE}== $1 ==${NC}"; }
+function print_success() { echo -e "${GREEN}✅ $1${NC}"; }
+function print_error()   { echo -e "${RED}❌ Error: $1${NC}" >&2; }
+
+# Guard clause — only run main if executed directly, not when sourced
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main "$@"
+    exit 0
+fi
 ```
 
-To update the skill later:
+Run it:
+
+```console
+$ ./rotate-logs.sh --help
+$ ./rotate-logs.sh -d /var/log/myapp -a 30 -g -v
+== Rotating logs in /var/log/myapp (older than 30 days) ==
+archiving: /var/log/myapp/access.2026-04-01.log
+archiving: /var/log/myapp/access.2026-04-02.log
+Processed 2 file(s)
+✅ Done
+```
+
+### What this demonstrates
+
+| Pattern | Where it appears |
+|---|---|
+| Shebang + four-line header comment (purpose, author, date) | top of file |
+| `DEPENDENCIES`, `SCRIPT_NAME`, `VERSION` declared once at the top | global declarations |
+| Colors guarded by `NO_COLOR`/`TERM=dumb` for non-terminal output | terminal-friendly defaults |
+| `usage()` reads like a man page; exits 1 (use is misuse) | shown on `-h` or bad args |
+| `main()` parses args, validates, then dispatches | single entry point |
+| One business-logic function per concern (`archive_old_logs`) | predictable structure |
+| `exit_on_missing_tools` runs before doing real work | fail fast on missing deps |
+| Errors go to `stderr` (`>&2`), stdout reserved for data | safe in pipelines |
+| `--dry-run` and `--verbose` are first-class flags | scriptable and inspectable |
+| Guard clause `[[ "${BASH_SOURCE[0]}" == "${0}" ]]` | safe to `source` from tests |
+| No `set -e` — failures handled explicitly per call | predictable, no surprise exits |
+
+## Simple scripts
+
+For one-shot scripts under ~30 lines with no arguments, the skill skips the `main()` ceremony:
+
 ```bash
-cd claude-skill-bash
-git pull
+#!/usr/bin/env bash
+# Purpose: Print the line count of each file given as an argument.
+# Usage: count-lines.sh <file> [<file>...]
+
+if [ "$#" -eq 0 ]; then
+    echo "Error: at least one file is required" >&2
+    exit 1
+fi
+
+for f in "$@"; do
+    if [ ! -f "$f" ]; then
+        echo "skip: $f (not a file)" >&2
+        continue
+    fi
+    printf "%-40s %d\n" "$f" "$(wc -l < "$f")"
+done
 ```
 
-### Alternative: Direct Copy
+Still enforced: header comment, errors to `stderr`, quoted variables, non-zero exit on misuse. Skipped: arg parser, colors, helper functions, guard clause.
 
-If you prefer a static installation without symlinks:
+If a simple script grows arguments, branching, or much past 30 lines, refactor it to the ordinary template. The decision tree for "simple vs ordinary" lives in `SKILL.md`.
 
-```bash
-# Clone this repository
-git clone https://github.com/bentsolheim/claude-skill-bash.git
-cd claude-skill-bash
+## More
 
-# Copy entire skill directory to global Claude skills
-cp -r . ~/.claude/skills/claude-skill-bash/
-
-# Or for a specific project
-cp -r . /path/to/project/.claude/skills/claude-skill-bash/
-```
-
-Note: With this method, you'll need to manually copy files again after updates.
-
-## Usage
-
-### Automatic Invocation
-
-The skill automatically activates when Claude detects:
-- Creating new bash/shell scripts
-- Editing `.sh` or `.bash` files
-- Requests for automation, deployment, or backup scripts
-- Mentions of bash, shell scripting, or script structure
-
-### Example Prompts
-
-```
-"Create a backup script for my MySQL databases"
-"Review scripts/deploy.sh for best practices"
-"I need a script to process log files"
-"Make this bash script more maintainable"
-```
-
-## Project Structure
-
-```
-claude-skill-bash/
-├── SKILL.md                    # Main skill definition with all best practices
-├── templates/
-│   └── script-template.sh      # Reusable bash script template
-├── scripts/
-│   └── scaffold.sh             # Script generator utility
-└── README.md                   # Documentation
-```
-
-## Skill Components
-
-### SKILL.md
-
-The main skill file containing:
-- Frontmatter with name and auto-trigger description
-- Comprehensive bash best practices (1000+ lines)
-- Template structure with examples
-- Common patterns and anti-patterns
-- Testing guidelines
-
-### Templates
-
-Reusable script templates with placeholders:
-- `{{SCRIPT_NAME}}` - Script filename
-- `{{DESCRIPTION}}` - Script purpose
-- `{{AUTHOR}}` - Author name
-- `{{DATE}}` - Creation date
-
-### Utilities
-
-- `scaffold.sh` - Generates new scripts following all best practices
-
-## Version Management
-
-### Semantic Versioning
-
-This skill follows semantic versioning:
-- **Major**: Breaking changes to skill interface
-- **Minor**: New features or patterns added
-- **Patch**: Bug fixes and minor improvements
-
-### Updating
-
-To update the skill in your projects:
-
-```bash
-# Pull latest version
-git pull origin main
-
-# Redeploy to projects
-./deploy-skill.sh --global
-```
-
-## Testing
-
-### Test the Skill
-
-1. **Create a test script**:
-   ```
-   "Create a script to backup and compress log files"
-   ```
-
-2. **Verify patterns**:
-   - Main function with guard clause ✓
-   - Usage function ✓
-   - Argument parsing ✓
-   - Dependency checking ✓
-   - Error handling ✓
-
-3. **Edit existing script**:
-   ```
-   "Review and improve this bash script"
-   ```
-
-### Validate Generated Scripts
-
-```bash
-# Syntax check
-bash -n generated-script.sh
-
-# Test with shellcheck (if installed)
-shellcheck generated-script.sh
-
-# Run help
-./generated-script.sh --help
-```
-
-## Customization
-
-### Modify Standards
-
-Edit `SKILL.md` to adjust practices for your organization:
-
-1. Update the template structure
-2. Modify color schemes
-3. Add organization-specific patterns
-4. Include custom utility functions
-
-### Extend Templates
-
-Add new templates for specific use cases:
-
-```bash
-# Create specialized template
-cp templates/script-template.sh templates/backup-template.sh
-# Edit for backup-specific structure
-```
-
-## Troubleshooting
-
-### Skill Not Activating
-
-1. Check skill is in correct directory:
-   ```bash
-   ls ~/.claude/skills/claude-skill-bash/
-   ```
-
-2. Verify SKILL.md frontmatter is valid
-
-3. Try explicit mention: "Apply bash best practices to this script"
-
-### Generated Scripts Have Issues
-
-1. Ensure template file exists and is readable
-2. Check scaffold.sh has execute permissions
-3. Verify dependencies are installed
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your improvements
-4. Test thoroughly
-5. Submit a pull request
-
-### Areas for Contribution
-
-- Additional script templates
-- New utility functions
-- Platform-specific patterns
-- Integration examples
-- Documentation improvements
-
-## License
-
-MIT License - See LICENSE file for details
-
-## Support
-
-- Issues: [GitHub Issues](https://github.com/bentsolheim/claude-skill-bash/issues)
-- Discussions: [GitHub Discussions](https://github.com/bentsolheim/claude-skill-bash/discussions)
-
-## Changelog
-
-### Version 1.1.0 (2025-11-04)
-- Add support for simple scripts (<30 lines, no arguments)
-- New --simple flag in scaffold tool
-- Separate templates for simple vs ordinary scripts
-- Decision tree for choosing script complexity
-- Examples of CI/CD and data transformation scripts
-
-### Version 1.0.0 (2025-11-03)
-- Initial release
-- Core bash best practices
-- Script scaffolding tool
-- Template system
-
-## Acknowledgments
-
-- Based on enterprise bash scripting patterns
-- Inspired by Google Shell Style Guide
-- Community best practices from DevOps teams
+- Full conventions, decision tree, anti-patterns, and the scaffolding utility: see [`SKILL.md`](SKILL.md) and [`scripts/scaffold.sh`](scripts/scaffold.sh).
+- Templates: [`templates/script-template.sh`](templates/script-template.sh) (ordinary), [`templates/simple-script-template.sh`](templates/simple-script-template.sh) (simple).
