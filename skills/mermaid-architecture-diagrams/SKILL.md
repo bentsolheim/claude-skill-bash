@@ -2,7 +2,7 @@
 name: mermaid-architecture-diagrams
 description: Author print-quality Mermaid architecture and ops diagrams (system sketches, deployment pipelines, monitoring and data-flow maps) using a semantic color system and a mandatory render-and-inspect loop. Use when creating, styling, or reviewing Mermaid diagrams; when asked for an architecture diagram, system sketch, or flowchart destined for documentation (Quarto/pandoc/PDF, GitHub README, wikis); or when a Mermaid diagram renders ugly, clipped, or unreadable. Covers verified pipeline-specific gotchas (Quarto vs mermaid-cli) and their workarounds.
 metadata:
-  version: 1.0.0
+  version: 1.1.0
 ---
 
 # Mermaid Architecture Diagrams

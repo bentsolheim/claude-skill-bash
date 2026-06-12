@@ -47,6 +47,11 @@ flowchart TB
 | `linkStyle` indices count invisible `~~~` links | `[universal]` | Index = order of *every* edge statement. Count carefully. |
 | LR pipelines print tiny | `[universal]` | A 6:1 LR strip scaled to text width yields ~4–5pt type. Prefer TB for print destinations. |
 | Shadows clip at canvas edge; subtle shadows vanish in print | `[universal]` | Keep drop-shadows modest but visible (≥2px offset, ≥0.2 alpha); expect clipping on edge-hugging nodes. |
+| **`linkStyle default` resurrects invisible `~~~` links** | `[universal]` | `linkStyle default` applies stroke to *every* edge — including invisible `~~~` spacer links, which render as phantom edges fabricating connections (verified: this disqualified a competition variant whose author never noticed across two self-review rounds). Set the base edge color via `themeVariables.lineColor`; use *indexed* `linkStyle` only, for accents. |
+| `font-weight:bold` re-wraps labels | `[universal]` | Bold widens text past the ~200px wrap budget: previously single-line titles wrap, and the whole canvas geometry shifts. After adding bold, re-inspect every label; break lines explicitly. |
+| `fill-opacity` ≤ 0.10 reads as white | `[universal]` | Tints only land visually at ~0.15–0.25 over a solid border; below that the "tint" disappears at arm's length and color identity rides on the border alone. |
+| Nested cluster shadows stack into haze | `[universal]` | Three nested shadowed boundaries produce gray bands where panes meet. Keep cluster shadows tight (~`0 3px 8px @ 0.20`) and put the elevation on nodes instead. |
+| Long dotted runs are hard to trace | `[universal]` | Prefer dashed over dotted for long edge runs; a `-.->` dot pattern can be overridden per edge with `linkStyle N stroke-dasharray:9 5`. |
 | mmdc can't find Chrome | `[mmdc]` | puppeteer wants its own pinned download. Either `npx puppeteer browsers install chrome-headless-shell`, or point at system Chrome with `-p puppeteer-config.json`: `{"executablePath": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"}` (adjust per OS). |
 | Output sizing | pipeline-specific | Quarto: `%%| fig-width: N` cell option, PNGs ~2960px wide. mmdc: `-w` page width, `-s` scale factor, `-b white` background. |
 
@@ -84,9 +89,10 @@ Per-subgraph `style` overrides cluster theme defaults. Rounded boundaries: appen
 a -->|"https :443"| b      %% solid runtime
 a -.->|"nightly sync"| b   %% dashed automation
 a ~~~ b                    %% invisible, layout nudging only
-linkStyle default stroke:#4d4d4d
 linkStyle 3 stroke:#D55E00 %% accent one path (index counts ~~~ too)
 ```
+
+Base edge color belongs in `themeVariables.lineColor` — **never `linkStyle default`**, which also styles invisible `~~~` links into phantom edges (see gotcha table).
 
 ## Aesthetics `[universal unless noted]`
 

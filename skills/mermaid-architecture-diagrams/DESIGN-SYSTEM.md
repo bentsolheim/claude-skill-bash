@@ -53,11 +53,28 @@ Line style is semantic, set-wide:
 
 All diagrams in a set share: identical init block, identical classDef tokens, identical edge grammar, one naming scheme per entity (a host named "Prod server 2" in one diagram is not "Prod host" in the next), and one legend treatment. Inconsistency between sibling diagrams reads as sloppiness even when each diagram is individually fine.
 
-## Aesthetic levers (verified)
+## Two verified looks
 
-Beyond the flat baseline, these render in both major pipelines — apply with restraint and consistently:
+### Look 1 — Flat accessible (the token table above)
 
-- **Rounded corners**: `rx:10,ry:10` in classDef (and in subgraph `style` lines)
-- **Translucency**: `fill-opacity:0.12` with a solid border reads as a tint
-- **Weight**: `font-weight:bold` for key nodes; `stroke-width` for emphasis (pick one width, deviate only for accents)
-- **Shadows**: only via init `themeCSS` (e.g. `.node rect { filter: drop-shadow(2px 3px 4px rgba(0,0,0,0.25)); }`) — never in classDef (parse error in newer Mermaid). Tune them strong enough to survive print scaling; expect clipping at canvas edges.
+Colorblind-safe, conservative, print-bulletproof. The right default for compliance documents and unknown audiences. In adversarial attractiveness judging it calibrates ~5/10: legible but reads as "default Mermaid".
+
+### Look 2 — Glass + elevation (judged 8/10 vs the flat baseline's 5/10)
+
+A restyle recipe that decisively beat the flat look in blind adversarial judging while preserving its proven layout legibility. The mechanics:
+
+- **Tokens as hue-pairs**: each token = a saturated 2px border + the *same hue* as a translucent fill (`fill-opacity` 0.15–0.25 — below ~0.10 the tint reads as white)
+- **Node elevation** via init `themeCSS`: `.node rect, .node path, .node polygon, .node circle { filter: drop-shadow(0 2px 4px rgba(15,23,42,0.3)); }`
+- **Tight cluster shadows** to avoid nested-boundary haze: `.cluster rect { filter: drop-shadow(0 3px 8px rgba(51,65,85,0.2)); }`
+- **Rounded corners** `rx:14,ry:14` on node classDefs (skip on stadium/cylinder shapes where it fights the silhouette)
+- **One reserved accent** (e.g. rose `#E11D48`) for gaps/alerts — pick it perceptually distant from the datastore hue
+- Boundary panels in light neutrals (`#F1F5F9`/`#FFFFFF` alternation) so the layering reads
+- Example hue set (swap for brand colors freely): compute `#2563EB`, datastore `#F59E0B`/border `#D97706`, external `#64748B` dashed, actor `#10B981`/border `#059669`, edges `#475569`, text `#0F172A`
+
+Trade-off: hue-pair tints are *less* colorblind-robust than the Okabe-Ito flat set (identity leans on border hue + lightness). For accessibility-critical audiences, stay with Look 1 or verify the chosen hues under CVD simulation.
+
+### Lever notes (verified both pipelines)
+
+- **Shadows**: only via init `themeCSS` — classDef `filter:` is a parse error in newer Mermaid. Tune ≥2px offset / ≥0.2 alpha or they vanish in print; expect clipping at canvas edges; don't stack heavy shadows on nested boundaries.
+- **Weight**: `font-weight:bold` for key nodes — but bold re-wraps labels (see TECHNIQUES gotchas); re-inspect after applying.
+- **Line patterns**: dashed traces better than dotted on long runs; override a `-.->` dot pattern with `linkStyle N stroke-dasharray:9 5` when needed.
