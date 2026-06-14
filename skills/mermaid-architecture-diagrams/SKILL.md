@@ -2,7 +2,7 @@
 name: mermaid-architecture-diagrams
 description: Author print-quality Mermaid architecture and ops diagrams (system sketches, deployment pipelines, monitoring and data-flow maps) using a semantic color system and a mandatory render-and-inspect loop. Use when creating, styling, or reviewing Mermaid diagrams; when asked for an architecture diagram, system sketch, or flowchart destined for documentation (Quarto/pandoc/PDF, GitHub README, wikis); or when a Mermaid diagram renders ugly, clipped, or unreadable. Covers verified pipeline-specific gotchas (Quarto vs mermaid-cli) and their workarounds.
 metadata:
-  version: 1.1.0
+  version: 1.2.0
 ---
 
 # Mermaid Architecture Diagrams
@@ -25,7 +25,7 @@ A diagram you haven't looked at is a draft, not a deliverable.
 
 1. **Purpose first.** One diagram, one purpose, one audience. Write the 5-second story the reader must grasp (*what talks to what, through what, where the boundaries are*) before drawing. If a diagram needs two stories, make two diagrams.
 2. **Pick the flow direction.** Topology/containment reads top-down (`TB`); pipelines read left-to-right (`LR`) — **but for print/PDF destinations, tall-and-narrow TB beats wide LR**: an LR pipeline scaled to text width prints at ~4–5pt. Verified repeatedly.
-3. **Apply the design system.** Use the semantic tokens, edge grammar, and label rules in [DESIGN-SYSTEM.md](DESIGN-SYSTEM.md). Color means something or it isn't used.
+3. **Apply the design system.** Use the semantic tokens, edge grammar, and label rules in [DESIGN-SYSTEM.md](DESIGN-SYSTEM.md). Color means something or it isn't used. **Default to the glass + elevation look (Look 2, judged 8/10); the flat look (5/10) is the exception** — reach for it only when colorblind-safety or compliance is explicitly required. "Unknown audience" or "just show me X" is a Look 2 case. See DESIGN-SYSTEM.md's decision rule; don't pick flat because it's listed first.
 4. **Author within the verified allowlist.** [TECHNIQUES.md](TECHNIQUES.md) contains only constructs verified through real render pipelines, each tagged with where it works. The headline trap: **never set `themeVariables.fontFamily` for Quarto-destined diagrams** — it clips every label.
 5. **Render with the destination's pipeline** (table below).
 6. **Self-review adversarially** against [REVIEW-CHECKLIST.md](REVIEW-CHECKLIST.md) — legibility, design consistency, comprehension/correctness. Fix and re-render.

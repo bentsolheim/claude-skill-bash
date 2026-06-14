@@ -55,11 +55,13 @@ All diagrams in a set share: identical init block, identical classDef tokens, id
 
 ## Two verified looks
 
+**Decision rule: default to Look 2 (glass + elevation).** It won blind adversarial judging 8/10 vs Look 1's 5/10 while keeping the same proven layout, so it is the default for standalone images, READMEs, slides, and any general or unspecified audience. Reach for Look 1 (flat) only when colorblind-safety or a compliance / maximum-print-robustness need is explicitly stated. "Unknown audience" or "just show me the relationships" is a Look 2 case, not a Look 1 case. Don't pick flat because it appears first or feels safer; if a hard constraint is genuinely ambiguous, ask.
+
 ### Look 1 — Flat accessible (the token table above)
 
-Colorblind-safe, conservative, print-bulletproof. The right default for compliance documents and unknown audiences. In adversarial attractiveness judging it calibrates ~5/10: legible but reads as "default Mermaid".
+Colorblind-safe, conservative, print-bulletproof. The right choice when colorblind-safety or compliance is a stated requirement — not the default for general work. In adversarial attractiveness judging it calibrates ~5/10: legible but reads as "default Mermaid".
 
-### Look 2 — Glass + elevation (judged 8/10 vs the flat baseline's 5/10)
+### Look 2 — Glass + elevation (the default; judged 8/10 vs the flat baseline's 5/10)
 
 A restyle recipe that decisively beat the flat look in blind adversarial judging while preserving its proven layout legibility. The mechanics:
 
