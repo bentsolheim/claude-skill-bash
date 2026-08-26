@@ -2,7 +2,7 @@
 name: rest-api-principles
 description: REST API design principles — resource modeling, URL structure, versioning, collections, sub-collections, ownership, operations, reports, methods and status codes. Use when designing, adding, or reviewing REST API endpoints, or deciding how a domain concept maps to resources and URLs.
 metadata:
-  version: 0.11.0
+  version: 0.11.1
 ---
 
 # REST API Principles
@@ -56,7 +56,7 @@ Related data appears in a representation in one of two forms: **embedded** (the 
 
 - `flowCategory` and `processes` are refs — non-owned resources living in their own root collections. `processes` shows refs in a collection-valued property.
 - `flowDetails` is the owned sub-collection, embedded in full — the same resources addressable at `/api/v1/flow-instances/42/flow-details`.
-- A ref may optionally carry a self link where that helps clients discover resources: `{ "id": "ALU07", "name": "Aluminium", "self": "/api/v1/flow-categories/ALU07" }`.
+- A ref may optionally carry a self link where that helps clients discover resources: `{ "id": "ALU07", "name": "Aluminium", "links": [{ "rel": "self", "href": "/api/v1/flow-categories/ALU07" }] }`.
 - Complete self-discoverability and navigability (full HATEOAS) is a non-goal; individual HATEOAS concepts — like self links — are adopted where they are useful.
 
 ## Operations
