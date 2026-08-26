@@ -2,7 +2,7 @@
 name: general-architecture-principles
 description: General software architecture principles — extending the existing domain model instead of creating parallel per-feature vocabularies, separating generic capability from feature-specific judgment, naming from the ubiquitous language, and ranking model coherence above change isolation. Use when designing, architecting, or reviewing features, APIs, services, or data models — any time new types, endpoints, resources, or concepts are about to be introduced into an existing system.
 metadata:
-  version: 1.0.0
+  version: 1.1.0
 ---
 
 # General Architecture Principles
@@ -56,6 +56,20 @@ system, not the feature.
   thing plus its consumers is usually the cheaper choice over the system's lifetime.
 - Isolation is still a virtue *within* the right model. It stops being a virtue when it is the
   reason a parallel model exists.
+
+## Layers wrap — don't reach past them
+
+- In a layered architecture, when a service object clearly has the responsibility to wrap a data
+  access object, the data access object is not used directly from elsewhere. Go through the
+  service object, and **extend it** when a data-access feature it should expose is missing —
+  that extension is the service layer doing its job, not bloat.
+- Reaching past the owning layer splits ownership: invariants, priming, caching, and access
+  rules the service enforces silently do not apply on the bypass path, and the next reader can
+  no longer trust the service as the single account of how its data is touched.
+- A direct data-access dependency outside its owning service is acceptable only when genuinely
+  necessary — and then the injection site says why.
+- The discipline generalizes to every boundary, not just service→data: whatever component wraps
+  a subsystem *is* that subsystem's access path.
 
 ## Plans present the model, not just the mechanics
 
