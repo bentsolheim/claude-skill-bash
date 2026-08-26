@@ -2,7 +2,7 @@
 name: rest-api-principles
 description: REST API design principles — resource modeling, URL structure, versioning, collections, sub-collections, ownership, operations, reports, methods and status codes. Use when designing, adding, or reviewing REST API endpoints, or deciding how a domain concept maps to resources and URLs.
 metadata:
-  version: 0.9.0
+  version: 0.10.0
 ---
 
 # REST API Principles
@@ -33,6 +33,29 @@ metadata:
 - If an entity owns a collection of sub-resources (deleting the parent deletes them), represent it as a sub-collection under the parent: `/api/v{version}/{parents}/{id}/{children}`.
 - Cap owned sub-collections at one level under the parent unless there is a documented reason to go deeper.
 - If an entity holds a collection of entities it does not own (independent lifecycle), those entities are their own root collection. In the referencing entity's representation they appear only as **refs** — the minimal representation of a resource: its id, plus a display name where appropriate.
+
+## Resource shape
+
+Related data appears in a representation in one of two forms: **embedded** (the full representation, inline) or as a **ref** (id plus display name). Owned sub-resources may be embedded; non-owned resources appear only as refs. Example — `GET /api/v1/flow-instances/42`:
+
+```json
+{
+  "id": 42,
+  "name": "Purchased aluminium scrap",
+  "flowCategory": { "id": "ALU07", "name": "Aluminium" },
+  "processes": [
+    { "id": 17, "name": "Remelting" },
+    { "id": 23, "name": "Casting" }
+  ],
+  "flowDetails": [
+    { "id": 901, "year": 2025, "inputAmount": 120.5, "unit": "tonne" },
+    { "id": 902, "year": 2026, "inputAmount": 98.0, "unit": "tonne" }
+  ]
+}
+```
+
+- `flowCategory` and `processes` are refs — non-owned resources living in their own root collections. `processes` shows refs in a collection-valued property.
+- `flowDetails` is the owned sub-collection, embedded in full — the same resources addressable at `/api/v1/flow-instances/42/flow-details`.
 
 ## Operations
 
