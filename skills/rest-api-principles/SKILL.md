@@ -2,7 +2,7 @@
 name: rest-api-principles
 description: REST API design principles — resource modeling, URL structure, versioning, collections, sub-collections, ownership, operations, reports, methods and status codes. Use when designing, adding, or reviewing REST API endpoints, or deciding how a domain concept maps to resources and URLs.
 metadata:
-  version: 0.8.0
+  version: 0.9.0
 ---
 
 # REST API Principles
@@ -47,8 +47,9 @@ metadata:
 
 ## Reports
 
-- A request that returns data from multiple entities/resources is its own top-level resource, suffixed `-report`, e.g. `/api/v1/flow-instance-data-reports`.
-- Reports may be organized under a `/reports` sub-resource, and deeper when needed, e.g. `/api/v1/reports/flow-details/process-reports?…`.
-- A report is read-only: `GET` with filter query parameters. The Collections rules apply, including `400 Bad Request` for an inappropriate unfiltered request.
+- A request that returns data from multiple entities/resources is its own top-level resource, suffixed `-report`, e.g. `/api/v1/flow-instance-data-report`.
+- Report names are **singular**, unlike collections: a report is a parameterized singleton view — nothing is enumerated and there is no `/{id}`. If a report needs persisted, addressable runs, model it as an operation with ids instead.
+- Reports may be organized under a `/reports` sub-resource, and deeper when needed, e.g. `/api/v1/reports/flow-details/process-report?…`. The grouping prefix stays plural; the leaf names one report.
+- A report is read-only: `GET`, with query parameters selecting its content. A request missing required parameters returns `400 Bad Request` naming them.
 - A report resource may contain redundant data — values copied from other resources or entities — to be concise and efficient.
 - That does not displace embedding or referencing related entities where it makes sense: if nearly all of a resource's properties would be copied into the report, consider embedding the resource instead.
