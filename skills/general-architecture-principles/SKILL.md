@@ -2,7 +2,7 @@
 name: general-architecture-principles
 description: General software architecture principles — extending the existing domain model instead of creating parallel per-feature vocabularies, separating generic capability from feature-specific judgment, naming from the ubiquitous language, and ranking model coherence above change isolation. Use when designing, architecting, or reviewing features, APIs, services, or data models — any time new types, endpoints, resources, or concepts are about to be introduced into an existing system.
 metadata:
-  version: 1.1.0
+  version: 1.2.0
 ---
 
 # General Architecture Principles
@@ -23,6 +23,21 @@ system, not the feature.
   is not a justification; it is the failure mode.
 - When an existing concept almost fits, prefer evolving it (and its other consumers) over
   cloning it. The clone is cheaper today and more expensive every day after.
+
+## Generalize siblings — don't mint a twin
+
+- Before naming a new domain concept, search the whole domain for the same concept already
+  living under a narrower, subdomain-scoped name — a per-subdomain exception, status, guard, or
+  policy that expresses the identical idea for its corner of the domain.
+- The sibling will not be found by name — by definition it is named for its subdomain. Search by
+  mechanism and behavior instead: what the codebase already throws, returns, or checks in the
+  analogous situation (base types, status-code mappings, naming suffixes, catch sites).
+- Finding one is the signal to **devise the general concept**: lift the existing narrow one to
+  the domain level and let both subdomains speak it — never mint a second narrow equivalent
+  beside it. Two subdomain twins are worse than either alone: they prove the domain has the
+  concept while denying it a name, and every future subdomain will mint a third.
+- The moment of the second instance is the cheapest time to generalize: the two concrete use
+  cases in hand are exactly the evidence needed to name and shape the general concept correctly.
 
 ## Separate capability from judgment
 
