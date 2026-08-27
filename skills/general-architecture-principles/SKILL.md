@@ -2,7 +2,7 @@
 name: general-architecture-principles
 description: General software architecture principles — extending the existing domain model instead of creating parallel per-feature vocabularies, separating generic capability from feature-specific judgment, naming from the ubiquitous language, and ranking model coherence above change isolation. Use when designing, architecting, or reviewing features, APIs, services, or data models — any time new types, endpoints, resources, or concepts are about to be introduced into an existing system.
 metadata:
-  version: 1.2.0
+  version: 1.3.0
 ---
 
 # General Architecture Principles
@@ -85,6 +85,20 @@ system, not the feature.
   necessary — and then the injection site says why.
 - The discipline generalizes to every boundary, not just service→data: whatever component wraps
   a subsystem *is* that subsystem's access path.
+
+## A service object grows with its concept — not past it
+
+- The wrapping discipline means the owning service absorbs every access need its concept
+  generates. That is correct — and it makes size pressure constant, so size is governed by a
+  rule, not left to drift.
+- A service object is sized by its **concept**. When one object has accreted several distinct
+  domain concepts — each with its own data access and lifecycle — it is several service objects
+  sharing a name.
+- The antidote is to split along **concept boundaries, never feature or delivery boundaries**:
+  each concept takes its data access with it. Splitting by consumer ("XSupportService") or
+  extracting "helpers"/utility grab-bags is the parallel-vocabulary disease in a new coat.
+- Split incrementally — one concept extracted per change, call sites updated outright, no
+  long-lived delegation shims.
 
 ## Plans present the model, not just the mechanics
 
